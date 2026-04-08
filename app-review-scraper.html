@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AppReview Radar</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0c1222;--surface:rgba(16,23,42,0.92);--surface2:rgba(22,30,52,0.95);
+  --border:rgba(100,120,160,0.15);--border2:rgba(100,120,160,0.25);
+  --accent:#38bdf8;--accent2:#818cf8;--accent3:#f472b6;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --glass:rgba(255,255,255,0.03);--glass2:rgba(255,255,255,0.06);
+  --green:#4ade80;--yellow:#fbbf24;--red:#f87171;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+canvas#particles{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
+.page{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:40px 20px 80px}
+
+.hero{text-align:center;margin-bottom:44px}
+.hero h1{font-size:38px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.hero p{color:var(--text2);font-size:14px;letter-spacing:0.3px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:24px;position:relative}
+
+.platform-tabs{display:flex;gap:10px;margin-bottom:24px}
+.platform-tab{flex:1;cursor:pointer}
+.platform-tab input{display:none}
+.platform-tab .tab-label{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--glass);font-size:14px;font-weight:600;color:var(--text3);transition:all .25s;user-select:none}
+.platform-tab .tab-label svg{width:20px;height:20px;opacity:.5;transition:opacity .25s}
+.platform-tab input:checked+.tab-label{color:var(--text);border-color:var(--accent);background:rgba(56,189,248,0.08)}
+.platform-tab input:checked+.tab-label svg{opacity:1}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-group{position:relative}
+.form-group label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:6px}
+.form-group input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--glass2);color:var(--text);font-size:14px;transition:all .25s;outline:none}
+.form-group input::placeholder{color:var(--text3)}
+.form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,0.08)}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) saturate(2) hue-rotate(175deg);cursor:pointer}
+
+.divider{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin:20px 0 14px;display:flex;align-items:center;gap:8px}
+.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.btn-primary{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;position:relative;overflow:hidden;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:all .25s;letter-spacing:0.3px;margin-top:6px}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-primary .btn-inner{display:flex;align-items:center;justify-content:center;gap:8px}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
+.btn-primary.loading .spinner{display:block}
+.btn-primary.loading .btn-label{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.section-title{font-size:17px;font-weight:700;color:var(--text)}
+.section-badge{font-size:12px;color:var(--text2);padding:5px 12px;border-radius:16px;background:var(--glass2);border:1px solid var(--border)}
+
+.btn-group{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn-sm{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid;transition:all .25s}
+.btn-sm:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm svg{width:14px;height:14px}
+.btn-sm .spinner-xs{width:14px;height:14px;border:2px solid rgba(255,255,255,0.2);border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite;display:none}
+
+.btn-analyze{color:#fff;background:linear-gradient(135deg,var(--accent3),var(--accent2));border-color:transparent}
+.btn-analyze:hover{opacity:.85}
+.btn-analyze.loading .spinner-xs{display:block;border-top-color:#fff}
+.btn-analyze.loading .btn-sm-label{display:none}
+
+.btn-fav{color:var(--yellow);background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.2)}
+.btn-fav:hover{background:rgba(251,191,36,0.12)}
+.btn-fav.active{color:#fff;background:rgba(251,191,36,0.2);border-color:var(--yellow)}
+
+.stats-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.stat-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:16px;background:var(--glass2);border:1px solid var(--border);font-size:12px;color:var(--text2);white-space:nowrap}
+.stat-chip .sv{font-weight:700;color:var(--accent)}
+.stat-chip.rating .sv{color:var(--yellow)}
+.stat-chip.negative .sv{color:var(--red)}
+.stat-chip.date .sv{color:var(--accent2)}
+.stat-chip.name .sv{color:var(--green)}
+
+.app-banner{display:flex;align-items:center;gap:14px;padding:16px;border-radius:10px;background:var(--glass2);border:1px solid var(--border);margin-bottom:18px}
+.app-icon{width:48px;height:48px;border-radius:12px;object-fit:cover;background:var(--glass2);flex-shrink:0}
+.app-icon-placeholder{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0}
+.app-details{flex:1;min-width:0}
+.app-name{font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-id{font-size:12px;color:var(--text3);font-family:monospace}
+
+.review{padding:16px 0;border-bottom:1px solid var(--border);animation:fadeUp .35s ease both}
+.review:last-child{border-bottom:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.review-user{display:flex;align-items:center;gap:8px}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.avatar.s1{background:#ef4444}.avatar.s2{background:#f97316}.avatar.s3{background:#eab308}.avatar.s4{background:#22c55e}.avatar.s5{background:#6366f1}
+.user-name{font-weight:600;font-size:13px;color:var(--text)}
+.stars{display:flex;gap:1px;align-items:center}
+.stars .s{font-size:13px}
+.stars .s.on{color:var(--yellow)}
+.stars .s.off{color:rgba(255,255,255,0.08)}
+.score-badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;margin-left:6px}
+.score-badge.high{background:rgba(74,222,128,0.12);color:var(--green)}
+.score-badge.mid{background:rgba(251,191,36,0.12);color:var(--yellow)}
+.score-badge.low{background:rgba(248,113,113,0.12);color:var(--red)}
+
+.review-text{font-size:13.5px;line-height:1.7;color:var(--text);margin-bottom:8px;word-break:break-word}
+.review-translation{font-size:13px;line-height:1.6;color:var(--accent);margin-bottom:8px;padding:10px 14px;border-radius:8px;background:rgba(56,189,248,0.04);border:1px solid rgba(56,189,248,0.1)}
+.review-translation::before{content:'🌐 中文翻译';display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);margin-bottom:4px}
+.review-meta{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--text3)}
+.review-meta span{display:flex;align-items:center;gap:3px}
+
+.analysis-card{background:var(--surface2);border:1px solid rgba(129,140,248,0.15);border-radius:14px;padding:28px;margin-bottom:24px;animation:fadeUp .4s ease both}
+.analysis-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:22px;display:flex;align-items:center;gap:8px}
+.analysis-title::before{content:'📊';font-size:20px}
+.analysis-section{margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid var(--border)}
+.analysis-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.analysis-section h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px}
+.overview-item{padding:14px;border-radius:10px;background:var(--glass2);border:1px solid var(--border);text-align:center}
+.overview-item .val{font-size:22px;font-weight:800;color:#fff;line-height:1.2}
+.overview-item .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+.dist-bar{display:flex;gap:3px;height:22px;border-radius:5px;overflow:hidden}
+.dist-segment{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;min-width:18px}
+.keyword-tags{display:flex;flex-wrap:wrap;gap:6px}
+.keyword-tag{padding:5px 12px;border-radius:14px;font-size:12px;font-weight:600;background:var(--glass2);border:1px solid var(--border);color:var(--text2);display:flex;align-items:center;gap:5px}
+.keyword-tag .kcount{font-size:10px;color:var(--text3);background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:6px}
+.sample-review{padding:10px 14px;border-radius:8px;background:var(--glass2);border:1px solid var(--border);margin-bottom:6px;font-size:12px;line-height:1.6;color:var(--text2)}
+.sample-review .sh{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;color:var(--text3)}
+.sample-review .sh strong{color:var(--text)}
+.version-table{width:100%;border-collapse:collapse}
+.version-table th,.version-table td{padding:8px 12px;text-align:left;font-size:12px;border-bottom:1px solid var(--border)}
+.version-table th{color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.8px}
+
+.error-box{padding:14px 18px;border-radius:10px;border:1px solid rgba(244,114,182,0.2);background:rgba(244,114,182,0.05);color:var(--accent3);font-size:13px}
+
+.fav-section{margin-top:36px;padding-top:28px;border-top:1px solid var(--border)}
+.fav-section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.fav-section-title svg{width:18px;height:18px;color:var(--yellow)}
+
+.fav-card{background:var(--surface);border:1px solid rgba(251,191,36,0.1);border-radius:14px;padding:20px;margin-bottom:16px}
+.fav-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.fav-info{display:flex;align-items:center;gap:10px}
+.fav-icon{width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.fav-icon-placeholder{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.fav-texts{min-width:0}
+.fav-name{font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.fav-sub{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:8px}
+.fav-platform-tag{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase}
+.fav-platform-tag.android{background:rgba(56,189,248,0.1);color:var(--accent)}
+.fav-platform-tag.ios{background:rgba(129,140,248,0.1);color:var(--accent2)}
+.fav-actions{display:flex;gap:6px;align-items:center}
+.fav-time{font-size:10px;color:var(--text3)}
+.btn-icon{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--glass);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.btn-icon:hover{border-color:var(--accent);color:var(--accent);background:rgba(56,189,248,0.05)}
+.btn-icon.danger:hover{border-color:var(--red);color:var(--red)}
+.btn-icon svg{width:13px;height:13px}
+.btn-icon.refreshing svg{animation:spin .6s linear infinite}
+
+.fav-reviews{border-top:1px solid var(--border);padding-top:10px}
+.fav-review-mini{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;gap:10px;align-items:flex-start;font-size:12px}
+.fav-review-mini:last-child{border-bottom:none}
+.fav-mini-score{flex-shrink:0;width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.fav-mini-score.high{background:rgba(74,222,128,0.15);color:var(--green)}
+.fav-mini-score.mid{background:rgba(251,191,36,0.15);color:var(--yellow)}
+.fav-mini-score.low{background:rgba(248,113,113,0.15);color:var(--red)}
+.fav-mini-body{flex:1;min-width:0}
+.fav-mini-text{color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fav-mini-translation{color:var(--accent);font-size:11px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.fav-mini-meta{display:flex;gap:10px;font-size:10px;color:var(--text3);margin-top:3px}
+.fav-empty{text-align:center;padding:16px;color:var(--text3);font-size:12px}
+
+@media(max-width:640px){
+  .hero h1{font-size:28px}
+  .form-row{grid-template-columns:1fr}
+  .stats-bar{flex-direction:column}
+  .review-meta{flex-direction:column;gap:4px}
+  .btn-group{flex-direction:column;width:100%}
+  .btn-sm{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div class="page">
+  <div class="hero">
+    <h1>AppReview Radar</h1>
+    <p>Google Play & App Store 用户评论智能采集平台</p>
+  </div>
+
+  <div class="card">
+    <form id="scraper-form">
+      <div class="platform-tabs">
+        <label class="platform-tab">
+          <input type="radio" name="platform" value="android" checked>
+          <div class="tab-label">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 2.226a.75.75 0 0 0-1.046.177L15.1 4.5a8.46 8.46 0 0 0-6.2 0L7.523 2.403a.75.75 0 1 0-1.223.869L7.6 5.1A8.5 8.5 0 0 0 3.5 12.25V13h17v-.75A8.5 8.5 0 0 0 16.4 5.1l1.3-1.828a.75.75 0 0 0-.177-1.046ZM8.5 10a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm7 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2ZM3.5 14.5h17V18a4 4 0 0 1-4 4h-9a4 4 0 0 1-4-4v-3.5Z"/></svg>
+            Android
+          </div>
+        </label>
+        <label class="platform-tab">
+          <input type="radio" name="platform" value="ios">
+          <div class="tab-label">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83ZM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></svg>
+            iOS
+          </div>
+        </label>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label id="appIdLabel">应用包名</label>
+          <input type="text" id="appId" placeholder="com.miui.videoplayer" required>
+        </div>
+        <div class="form-group">
+          <label>国家代码</label>
+          <input type="text" id="country" placeholder="ID" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>语言代码</label>
+          <input type="text" id="lang" placeholder="id">
+        </div>
+        <div class="form-group">
+          <label>最大评论数</label>
+          <input type="text" id="maxReviews" placeholder="100" value="100">
+        </div>
+      </div>
+      <div class="divider">📅 日期筛选</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>开始日期</label>
+          <input type="date" id="dateFrom">
+        </div>
+        <div class="form-group">
+          <label>结束日期</label>
+          <input type="date" id="dateTo">
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" id="scrape-btn">
+        <span class="btn-inner"><span class="spinner"></span><span class="btn-label">开始采集</span></span>
+      </button>
+    </form>
+  </div>
+
+  <div class="card" id="results-container" style="display:none">
+    <div id="app-banner"></div>
+    <div class="section-header">
+      <span class="section-title">采集结果</span>
+      <div class="btn-group">
+        <button class="btn-sm btn-fav" id="fav-btn" style="display:none" onclick="toggleFavorite()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <span id="fav-btn-text">收藏</span>
+        </button>
+        <button class="btn-sm btn-analyze" id="analyze-btn" style="display:none" onclick="analyzeReviews()">
+          <span class="spinner-xs"></span>
+          <span class="btn-sm-label">📊 一键分析</span>
+        </button>
+        <span class="section-badge" id="results-count">0 条</span>
+      </div>
+    </div>
+    <div class="stats-bar" id="stats-bar"></div>
+  </div>
+
+  <div id="analysis-container"></div>
+
+  <div class="card" id="reviews-detail-container" style="display:none">
+    <div class="section-header">
+      <span class="section-title">评论明细</span>
+      <span class="section-badge" id="reviews-detail-count">0 条</span>
+    </div>
+    <div id="reviews-list"></div>
+  </div>
+
+  <div class="fav-section" id="favorites-section" style="display:none">
+    <div class="fav-section-title">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      我的收藏
+    </div>
+    <div id="favorites-list"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const c=document.getElementById('particles'),ctx=c.getContext('2d');
+  let w,h,dots=[];
+  function resize(){w=c.width=innerWidth;h=c.height=innerHeight;dots=[];for(let i=0;i<60;i++)dots.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.2+.4,dx:(Math.random()-.5)*.25,dy:(Math.random()-.5)*.25,o:Math.random()*.25+.05})}
+  resize();addEventListener('resize',resize);
+  function draw(){ctx.clearRect(0,0,w,h);dots.forEach(d=>{d.x+=d.dx;d.y+=d.dy;if(d.x<0||d.x>w)d.dx*=-1;if(d.y<0||d.y>h)d.dy*=-1;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle=`rgba(56,189,248,${d.o})`;ctx.fill()});for(let i=0;i<dots.length;i++)for(let j=i+1;j<dots.length;j++){const dx=dots[i].x-dots[j].x,dy=dots[i].y-dots[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){ctx.beginPath();ctx.moveTo(dots[i].x,dots[i].y);ctx.lineTo(dots[j].x,dots[j].y);ctx.strokeStyle=`rgba(56,189,248,${.04*(1-dist/120)})`;ctx.stroke()}}requestAnimationFrame(draw)}
+  draw();
+})();
+
+const appIdInput=document.getElementById('appId');
+const appIdLabel=document.getElementById('appIdLabel');
+document.querySelectorAll('input[name="platform"]').forEach(r=>{
+  r.addEventListener('change',()=>{
+    if(r.value==='ios'){
+      appIdLabel.textContent='应用 ID';
+      appIdInput.placeholder='例如 741292507';
+    }else{
+      appIdLabel.textContent='应用包名';
+      appIdInput.placeholder='com.miui.videoplayer';
+    }
+  });
+});
+
+const form=document.getElementById('scraper-form');
+const btn=document.getElementById('scrape-btn');
+const analyzeBtn=document.getElementById('analyze-btn');
+const favBtn=document.getElementById('fav-btn');
+const favBtnText=document.getElementById('fav-btn-text');
+const resultsCtn=document.getElementById('results-container');
+const reviewsDetailCtn=document.getElementById('reviews-detail-container');
+const reviewsList=document.getElementById('reviews-list');
+const countEl=document.getElementById('results-count');
+const detailCountEl=document.getElementById('reviews-detail-count');
+const statsBar=document.getElementById('stats-bar');
+const analysisCtn=document.getElementById('analysis-container');
+const favListEl=document.getElementById('favorites-list');
+const appBanner=document.getElementById('app-banner');
+
+let currentReviews=[];
+let currentParams=null;
+let currentAppInfo=null;
+
+async function fetchAppInfo(platform,appId,country,lang){
+  try{
+    const res=await fetch('/api/app-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,appId,country,lang})});
+    const data=await res.json();
+    return data.info||{title:appId,icon:''};
+  }catch(e){return{title:appId,icon:''}}
+}
+
+function getFavorites(){try{return JSON.parse(localStorage.getItem('appReviewFavorites')||'[]')}catch(e){return[]}}
+function saveFavorites(favs){localStorage.setItem('appReviewFavorites',JSON.stringify(favs))}
+function favKey(p){return`${p.platform}:${p.appId}:${p.country}`}
+
+function isFavorited(){
+  if(!currentParams)return false;
+  return getFavorites().some(f=>favKey(f)===favKey(currentParams));
+}
+function updateFavBtn(){
+  if(!currentParams){favBtn.style.display='none';return}
+  favBtn.style.display='inline-flex';
+  const active=isFavorited();
+  favBtn.classList.toggle('active',active);
+  favBtnText.textContent=active?'已收藏':'收藏';
+  favBtn.querySelector('svg').setAttribute('fill',active?'currentColor':'none');
+}
+
+function toggleFavorite(){
+  if(!currentParams)return;
+  const favs=getFavorites();
+  const key=favKey(currentParams);
+  const idx=favs.findIndex(f=>favKey(f)===key);
+  if(idx>=0){favs.splice(idx,1)}
+  else{favs.push({platform:currentParams.platform,appId:currentParams.appId,country:currentParams.country,lang:currentParams.lang,appName:currentAppInfo?currentAppInfo.title:currentParams.appId,appIcon:currentAppInfo?currentAppInfo.icon:'',addedAt:Date.now(),lastRefreshed:Date.now(),reviews:[]})}
+  saveFavorites(favs);updateFavBtn();renderFavorites();
+  if(favs.find(f=>favKey(f)===key))refreshFavorite(key);
+}
+
+function renderMiniReview(r){
+  const score=r.score||0;const cls=score>=4?'high':score>=3?'mid':'low';
+  const tr=(r.textZh||r.titleZh)?`<div class="fav-mini-translation">${esc(r.titleZh||'')} ${esc(r.textZh||'')}</div>`:'';
+  return`<div class="fav-review-mini"><div class="fav-mini-score ${cls}">${score}★</div><div class="fav-mini-body"><div class="fav-mini-text">${r.title?'<b>'+esc(r.title)+'</b> ':''}${esc(r.text||'')}</div>${tr}<div class="fav-mini-meta"><span>${esc(r.userName||'匿名')}</span><span>${r.date?new Date(r.date).toLocaleDateString('zh-CN'):'未知'}</span></div></div></div>`;
+}
+
+function renderFavorites(){
+  const favs=getFavorites();
+  const section=document.getElementById('favorites-section');
+  if(!favs.length){section.style.display='none';return}
+  section.style.display='block';
+  favListEl.innerHTML=favs.map(f=>{
+    const key=favKey(f);
+    const lastTime=f.lastRefreshed?new Date(f.lastRefreshed).toLocaleString('zh-CN'):'从未刷新';
+    const reviewsHtml=f.reviews&&f.reviews.length?f.reviews.map(renderMiniReview).join(''):`<div class="fav-empty">暂无评论，点击刷新获取</div>`;
+    const iconHtml=f.appIcon?`<img class="fav-icon" src="${f.appIcon}" alt="">`:`<div class="fav-icon-placeholder">${(f.appName||f.appId||'?')[0].toUpperCase()}</div>`;
+    const name=f.appName||f.appId;
+    return`<div class="fav-card">
+      <div class="fav-header">
+        <div class="fav-info">${iconHtml}<div class="fav-texts"><div class="fav-name">${esc(name)}</div><div class="fav-sub"><span class="fav-platform-tag ${f.platform}">${f.platform==='android'?'Android':'iOS'}</span><span>${esc(f.appId)}</span><span>${f.country.toUpperCase()}</span></div></div></div>
+        <div class="fav-actions"><span class="fav-time">${lastTime}</span>
+          <button class="btn-icon" title="刷新" onclick="refreshFavorite('${esc(key)}')" id="refresh-${CSS.escape(key)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg></button>
+          <button class="btn-icon danger" title="取消收藏" onclick="removeFavorite('${esc(key)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <div class="fav-reviews">${reviewsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function removeFavorite(key){
+  saveFavorites(getFavorites().filter(f=>favKey(f)!==key));
+  updateFavBtn();renderFavorites();
+}
+
+async function refreshFavorite(key){
+  const favs=getFavorites();const fav=favs.find(f=>favKey(f)===key);if(!fav)return;
+  const rb=document.getElementById('refresh-'+CSS.escape(key));if(rb)rb.classList.add('refreshing');
+  try{
+    if(!fav.appName||fav.appName===fav.appId){
+      const info=await fetchAppInfo(fav.platform,fav.appId,fav.country,fav.lang);
+      fav.appName=info.title;fav.appIcon=info.icon;
+    }
+    const res=await fetch('/api/scrape-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:fav.platform,appId:fav.appId,country:fav.country,lang:fav.lang||fav.country,maxReviews:5})});
+    if(!res.ok)throw new Error('刷新失败');
+    const data=await res.json();
+    fav.reviews=(data.reviews||[]).slice(0,5);fav.lastRefreshed=Date.now();
+    saveFavorites(favs);renderFavorites();
+  }catch(e){console.error('刷新收藏失败:',e)}
+  finally{if(rb)rb.classList.remove('refreshing')}
+}
+
+async function autoRefreshFavorites(){
+  const favs=getFavorites();const ONE_DAY=864e5;const now=Date.now();
+  for(const f of favs){if(!f.lastRefreshed||now-f.lastRefreshed>ONE_DAY)await refreshFavorite(favKey(f))}
+}
+renderFavorites();autoRefreshFavorites();
+
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const platform=document.querySelector('input[name="platform"]:checked').value;
+  const appId=appIdInput.value.trim();
+  const country=document.getElementById('country').value.trim();
+  const lang=document.getElementById('lang').value.trim();
+  const maxReviews=parseInt(document.getElementById('maxReviews').value)||100;
+  const dateFrom=document.getElementById('dateFrom').value;
+  const dateTo=document.getElementById('dateTo').value;
+
+  btn.classList.add('loading');btn.disabled=true;
+  analyzeBtn.style.display='none';analysisCtn.innerHTML='';
+  currentParams={platform,appId,country,lang};
+
+  try{
+    const [reviewRes,appInfo]=await Promise.all([
+      fetch('/api/scrape-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,appId,country,lang,maxReviews,dateFrom,dateTo})}),
+      fetchAppInfo(platform,appId,country,lang)
+    ]);
+    if(!reviewRes.ok){const err=await reviewRes.json().catch(()=>({}));throw new Error(err.error||`HTTP ${reviewRes.status}`)}
+    const data=await reviewRes.json();
+    currentReviews=data.reviews;currentAppInfo=appInfo;
+    render(data.reviews,platform,appId,country,dateFrom,dateTo,appInfo);
+    if(data.reviews.length>0)analyzeBtn.style.display='inline-flex';
+    updateFavBtn();
+  }catch(err){
+    resultsCtn.style.display='block';appBanner.innerHTML='';statsBar.innerHTML='';
+    reviewsList.innerHTML=`<div class="error-box">采集失败：${err.message}</div>`;countEl.textContent='错误';
+  }finally{btn.classList.remove('loading');btn.disabled=false}
+});
+
+function render(reviews,platform,appId,country,dateFrom,dateTo,appInfo){
+  resultsCtn.style.display='block';reviewsDetailCtn.style.display='block';
+  countEl.textContent=`${reviews.length} 条`;detailCountEl.textContent=`${reviews.length} 条`;
+
+  const iconHtml=appInfo&&appInfo.icon?`<img class="app-icon" src="${appInfo.icon}" alt="">`:`<div class="app-icon-placeholder">${(appInfo&&appInfo.title||appId)[0].toUpperCase()}</div>`;
+  const name=appInfo&&appInfo.title?appInfo.title:appId;
+  appBanner.innerHTML=`<div class="app-banner">${iconHtml}<div class="app-details"><div class="app-name">${esc(name)}</div><div class="app-id">${esc(appId)} · ${platform==='android'?'Google Play':'App Store'} · ${country.toUpperCase()}</div></div></div>`;
+
+  const avg=reviews.length?reviews.reduce((s,r)=>s+(r.score||0),0)/reviews.length:0;
+  const dist=[0,0,0,0,0];reviews.forEach(r=>{if(r.score>=1&&r.score<=5)dist[r.score-1]++});
+  const neg=dist[0]+dist[1];
+  const dateChip=(dateFrom||dateTo)?`<div class="stat-chip date"><span>日期</span><span class="sv">${dateFrom||'不限'} ~ ${dateTo||'不限'}</span></div>`:'';
+  statsBar.innerHTML=`
+    <div class="stat-chip rating"><span>均分</span><span class="sv">${avg.toFixed(1)} ★</span></div>
+    <div class="stat-chip"><span>好评</span><span class="sv" style="color:var(--green)">${dist[3]+dist[4]}</span></div>
+    <div class="stat-chip negative"><span>差评</span><span class="sv">${neg}</span></div>
+    ${dateChip}`;
+
+  if(!reviews.length){reviewsList.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">未获取到评论</div>';return}
+  reviewsList.innerHTML=reviews.map((r,i)=>{
+    const score=r.score||0;
+    const stars=Array.from({length:5},(_,j)=>`<span class="s ${j<score?'on':'off'}">${j<score?'★':'☆'}</span>`).join('');
+    const cls=score>=4?'high':score>=3?'mid':'low';
+    const initial=(r.userName||'?')[0].toUpperCase();
+    const avatarCls='s'+Math.min(Math.max(score,1),5);
+    return`<div class="review" style="animation-delay:${i*25}ms">
+      <div class="review-top"><div class="review-user"><div class="avatar ${avatarCls}">${initial}</div><span class="user-name">${esc(r.userName||'匿名')}</span></div><div style="display:flex;align-items:center"><div class="stars">${stars}</div><span class="score-badge ${cls}">${score}</span></div></div>
+      <div class="review-text">${r.title?'<strong>'+esc(r.title)+'</strong><br>':''}${esc(r.text||'无评论内容')}</div>
+      ${(r.textZh||r.titleZh)?`<div class="review-translation">${r.titleZh?'<strong>'+esc(r.titleZh)+'</strong><br>':''}${r.textZh?esc(r.textZh):''}</div>`:''}
+      <div class="review-meta"><span>📅 ${r.date?new Date(r.date).toLocaleDateString('zh-CN'):'未知'}</span><span>📦 ${esc(r.version||'未知')}</span><span>👍 ${r.thumbsUp||0}</span></div>
+    </div>`}).join('');
+}
+
+async function analyzeReviews(){
+  if(!currentReviews.length)return;
+  analyzeBtn.classList.add('loading');analyzeBtn.disabled=true;analysisCtn.innerHTML='';
+  try{
+    const res=await fetch('/api/analyze-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reviews:currentReviews})});
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error||'分析失败')}
+    renderAnalysis((await res.json()).analysis);
+  }catch(err){analysisCtn.innerHTML=`<div class="error-box">分析失败：${err.message}</div>`}
+  finally{analyzeBtn.classList.remove('loading');analyzeBtn.disabled=false}
+}
+
+function renderAnalysis(a){
+  const o=a.overview;
+  const dC=['#ef4444','#f97316','#eab308','#22c55e','#6366f1'],dL=['1★','2★','3★','4★','5★'];
+  const dV=[o.distribution['1星'],o.distribution['2星'],o.distribution['3星'],o.distribution['4星'],o.distribution['5星']];
+  const dT=dV.reduce((s,v)=>s+v,0)||1;
+  const distBar=dV.map((v,i)=>{const p=Math.max((v/dT)*100,v>0?3:0);return`<div class="dist-segment" style="width:${p}%;background:${dC[i]}" title="${dL[i]}: ${v}">${v>0?v:''}</div>`}).join('');
+  const kw=tags=>tags.map(k=>`<span class="keyword-tag">${esc(k.word)}<span class="kcount">${k.count}</span></span>`).join('');
+  const samp=items=>items.map(s=>`<div class="sample-review"><div class="sh"><strong>${esc(s.user)}</strong><span>${'★'.repeat(s.score)}${'☆'.repeat(5-s.score)} · 👍${s.thumbsUp}</span></div>${esc(s.text)}</div>`).join('');
+  const vr=a.versionAnalysis.map(v=>`<tr><td style="font-weight:600">${esc(v.version)}</td><td>${v.count}</td><td>${v.avg} ★</td></tr>`).join('');
+  analysisCtn.innerHTML=`<div class="analysis-card">
+    <div class="analysis-title">评论智能分析报告</div>
+    <div class="analysis-section"><h3>📊 总体概览</h3><div class="overview-grid"><div class="overview-item"><div class="val">${o.total}</div><div class="lbl">总评论</div></div><div class="overview-item"><div class="val">${o.avgScore}</div><div class="lbl">均分</div></div><div class="overview-item"><div class="val" style="color:var(--green)">${o.positiveRate}</div><div class="lbl">好评率</div></div><div class="overview-item"><div class="val" style="color:var(--red)">${o.negativeRate}</div><div class="lbl">差评率</div></div></div><div class="dist-bar">${distBar}</div></div>
+    <div class="analysis-section"><h3>🏷 热门关键词</h3><div class="keyword-tags">${kw(a.allKeywords)}</div></div>
+    <div class="analysis-section"><h3>👍 好评分析（${a.positiveAnalysis.count} 条）</h3><div class="keyword-tags" style="margin-bottom:10px">${kw(a.positiveAnalysis.keywords)}</div>${samp(a.positiveAnalysis.samples)}</div>
+    <div class="analysis-section"><h3>👎 差评分析（${a.negativeAnalysis.count} 条）</h3><div class="keyword-tags" style="margin-bottom:10px">${kw(a.negativeAnalysis.keywords)}</div>${samp(a.negativeAnalysis.samples)}</div>
+    <div class="analysis-section"><h3>😐 中性评价（${a.neutralAnalysis.count} 条）</h3><div class="keyword-tags">${kw(a.neutralAnalysis.keywords)}</div></div>
+    ${a.versionAnalysis.length?`<div class="analysis-section"><h3>📦 版本维度</h3><table class="version-table"><thead><tr><th>版本</th><th>评论数</th><th>均分</th></tr></thead><tbody>${vr}</tbody></table></div>`:''}
+  </div>`;
+  analysisCtn.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+</script>
+</body>
+</html>

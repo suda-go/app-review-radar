@@ -1,0 +1,15 @@
+node_modules/
+*.tsbuildinfo
+kyuubi-config.json
+feishu-config.json
+doris-config.json
+bpm-config.json
+OpenAPI_OpenAPI.json
+.kiro/settings/mcp.json
+__pycache__/
+*.egg-info/
+.venv/
+mymd/
+scripts/app-reviews/
+scripts/output/
+scripts/feishu-output/

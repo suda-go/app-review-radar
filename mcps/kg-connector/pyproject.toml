@@ -1,0 +1,12 @@
+[project]
+name = "kg-mcp-client"
+version = "0.1.0"
+description = "Thin MCP client for the Knowledge Graph API"
+requires-python = ">=3.10"
+dependencies = [
+  "fastmcp>=2.0",
+  "httpx>=0.27",
+]
+
+[project.scripts]
+kg-mcp = "kg_mcp_client.__main__:main"

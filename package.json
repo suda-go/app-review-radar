@@ -1,0 +1,24 @@
+{
+  "name": "data-analysis-toolkit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Data analysis skills and data connection MCPs",
+  "workspaces": [
+    "skills/*",
+    "mcps/*",
+    "shared"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "app-store-scraper": "^0.18.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "google-play-scraper": "^10.1.2"
+  }
+}

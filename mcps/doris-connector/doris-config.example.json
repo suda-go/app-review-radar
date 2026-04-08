@@ -1,0 +1,11 @@
+{
+  "connections": {
+    "singapore": {
+      "host": "sgpprc-xiaomi-datalake.doris.srv",
+      "port": 10000,
+      "user": "",
+      "password": "",
+      "database": "paimon_alsgprc_hadoop.miuiads"
+    }
+  }
+}
