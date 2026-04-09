@@ -46,7 +46,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1)
 .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .btn-primary .btn-inner{display:flex;align-items:center;justify-content:center;gap:8px}
-.spinner{width:18px;height:18px;border:2.5px solid rgba(0,0,0,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:none}
+.spinner{width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:none}
 .btn-primary.loading .spinner{display:block}
 .btn-primary.loading .btn-label{display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -85,28 +85,31 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1)
 .app-name{font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .app-id{font-size:12px;color:var(--text3);font-family:monospace}
 
-.review{padding:10px 0;border-bottom:1px solid var(--border);animation:fadeUp .35s ease both}
-.review:last-child{border-bottom:none}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-.review-user{display:flex;align-items:center;gap:6px}
-.avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.review-table{width:100%;border-collapse:collapse;font-size:12px}
+.review-table th{background:var(--surface2);padding:10px 12px;text-align:left;font-weight:600;color:var(--text);border-bottom:2px solid var(--border2);font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+.review-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.review-table tr:hover{background:var(--glass2)}
+.review-table .col-user{width:120px}
+.review-table .col-score{width:80px;text-align:center}
+.review-table .col-content{min-width:200px}
+.review-table .col-date{width:100px;font-size:11px;color:var(--text3)}
+.review-table .user-cell{display:flex;align-items:center;gap:8px}
+.review-table .avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
 .avatar.s1{background:#ef4444}.avatar.s2{background:#f97316}.avatar.s3{background:#eab308}.avatar.s4{background:#22c55e}.avatar.s5{background:#6366f1}
-.user-name{font-weight:600;font-size:12px;color:var(--text)}
-.stars{display:flex;gap:1px;align-items:center}
-.stars .s{font-size:12px}
+.review-table .score-cell{display:flex;align-items:center;justify-content:center;gap:4px}
+.review-table .stars{display:flex;gap:1px}
+.review-table .stars .s{font-size:12px}
 .stars .s.on{color:var(--yellow)}
 .stars .s.off{color:rgba(0,0,0,0.08)}
-.score-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px}
+.score-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
 .score-badge.high{background:rgba(107,147,98,0.15);color:var(--green)}
 .score-badge.mid{background:rgba(212,164,91,0.15);color:var(--yellow)}
 .score-badge.low{background:rgba(212,91,91,0.15);color:var(--red)}
-
-.review-text{font-size:12px;line-height:1.5;color:var(--text);margin-bottom:5px;word-break:break-word}
-.review-translation{font-size:11px;line-height:1.4;color:var(--accent);margin-bottom:5px;padding:6px 10px;border-radius:6px;background:rgba(212,117,91,0.08);border:1px solid rgba(212,117,91,0.15)}
-.review-translation::before{content:'🌐 中文翻译';display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);margin-bottom:2px}
-.review-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:10px;color:var(--text3)}
-.review-meta span{display:flex;align-items:center;gap:2px}
+.review-table .content-cell{line-height:1.5;color:var(--text)}
+.review-table .review-title{font-weight:600;margin-bottom:3px}
+.review-table .review-text{font-size:12px}
+.review-table .review-translation{font-size:11px;line-height:1.4;color:var(--accent);margin-top:6px;padding:6px 10px;border-radius:6px;background:rgba(212,117,91,0.08);border:1px solid rgba(212,117,91,0.15)}
+.review-table .review-translation::before{content:'🌐 中文翻译';display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);margin-bottom:2px}
 
 .analysis-card{background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:28px;margin-bottom:24px;animation:fadeUp .4s ease both}
 .analysis-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:22px;display:flex;align-items:center;gap:8px}
@@ -182,7 +185,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1)
 
 <div class="page">
   <div class="hero">
-    <h1>AppReview Radar <span style="font-size:16px;font-weight:400;color:var(--text3);margin-left:8px;">v1.2.2</span></h1>
+    <h1>AppReview Radar <span style="font-size:16px;font-weight:400;color:var(--text3);margin-left:8px;">v1.3.0</span></h1>
     <p>Google Play & App Store 用户评论智能采集平台</p>
   </div>
 
@@ -457,18 +460,66 @@ function render(reviews,platform,appId,country,dateFrom,dateTo,appInfo){
     ${dateChip}`;
 
   if(!reviews.length){reviewsList.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">未获取到评论</div>';return}
-  reviewsList.innerHTML=reviews.map((r,i)=>{
+  
+  let tableHtml=`
+    <table class="review-table">
+      <thead>
+        <tr>
+          <th class="col-user">用户</th>
+          <th class="col-score">评分</th>
+          <th class="col-content">评论内容</th>
+          <th class="col-date">日期</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  
+  reviews.forEach((r,i)=>{
     const score=r.score||0;
     const stars=Array.from({length:5},(_,j)=>`<span class="s ${j<score?'on':'off'}">${j<score?'★':'☆'}</span>`).join('');
     const cls=score>=4?'high':score>=3?'mid':'low';
     const initial=(r.userName||'?')[0].toUpperCase();
     const avatarCls='s'+Math.min(Math.max(score,1),5);
-    return`<div class="review" style="animation-delay:${i*25}ms">
-      <div class="review-top"><div class="review-user"><div class="avatar ${avatarCls}">${initial}</div><span class="user-name">${esc(r.userName||'匿名')}</span></div><div style="display:flex;align-items:center"><div class="stars">${stars}</div><span class="score-badge ${cls}">${score}</span></div></div>
-      <div class="review-text">${r.title?'<strong>'+esc(r.title)+'</strong><br>':''}${esc(r.text||'无评论内容')}</div>
-      ${(r.textZh||r.titleZh)?`<div class="review-translation">${r.titleZh?'<strong>'+esc(r.titleZh)+'</strong><br>':''}${r.textZh?esc(r.textZh):''}</div>`:''}
-      <div class="review-meta"><span>📅 ${r.date?new Date(r.date).toLocaleDateString('zh-CN'):'未知'}</span><span>📦 ${esc(r.version||'未知')}</span><span>👍 ${r.thumbsUp||0}</span></div>
-    </div>`}).join('');
+    const dateStr=r.date?new Date(r.date).toLocaleDateString('zh-CN'):'未知';
+    const versionStr=r.version||'未知';
+    const thumbsUpStr=r.thumbsUp||0;
+    
+    tableHtml+=`
+      <tr style="animation:fadeUp .35s ease ${i*25}ms both">
+        <td class="col-user">
+          <div class="user-cell">
+            <div class="avatar ${avatarCls}">${initial}</div>
+            <span>${esc(r.userName||'匿名')}</span>
+          </div>
+        </td>
+        <td class="col-score">
+          <div class="score-cell">
+            <div class="stars">${stars}</div>
+            <span class="score-badge ${cls}">${score}</span>
+          </div>
+        </td>
+        <td class="col-content">
+          <div class="content-cell">
+            ${r.title?`<div class="review-title">${esc(r.title)}</div>`:''}
+            <div class="review-text">${esc(r.text||'无评论内容')}</div>
+            ${(r.textZh||r.titleZh)?`<div class="review-translation">${r.titleZh?`<strong>${esc(r.titleZh)}</strong> `:''}${r.textZh?esc(r.textZh):''}</div>`:''}
+          </div>
+        </td>
+        <td class="col-date">
+          <div>${dateStr}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">📦 ${esc(versionStr)}</div>
+          <div style="font-size:10px;color:var(--text3)">👍 ${thumbsUpStr}</div>
+        </td>
+      </tr>
+    `;
+  });
+  
+  tableHtml+=`
+      </tbody>
+    </table>
+  `;
+  
+  reviewsList.innerHTML=tableHtml;
 }
 
 async function analyzeReviews(){
