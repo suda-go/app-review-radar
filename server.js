@@ -39,15 +39,8 @@ function translateText(text, targetLang = 'zh-CN') {
 }
 
 async function translateReviews(reviews) {
-  // 确保输入是数组
-  if (!Array.isArray(reviews)) {
-    return [];
-  }
-  
   const result = [];
   for (const r of reviews) {
-    if (!r) continue;
-    
     const textNeedTranslate = r.text && !isChinese(r.text);
     const titleNeedTranslate = r.title && !isChinese(r.title);
     let textZh = '';
@@ -74,15 +67,22 @@ app.post('/api/scrape-reviews', async (req, res) => {
         
         if (platform === 'android') {
             console.log('正在爬取Google Play评论...');
-            reviews = await gplay.reviews({
-                appId,
-                country,
-                lang: lang || country,
-                sort: gplay.sort.NEWEST,
-                num: maxReviews || 100
-            });
-            
-            console.log(`成功获取 ${reviews.length} 条Google Play评论`);
+            try {
+                const result = await gplay.reviews({
+                    appId,
+                    country,
+                    lang: lang || country,
+                    sort: gplay.sort.NEWEST,
+                    num: maxReviews || 100
+                });
+                
+                // 确保 result 是数组
+                reviews = Array.isArray(result) ? result : [];
+                console.log(`成功获取 ${reviews.length} 条Google Play评论`);
+            } catch (err) {
+                console.error('Google Play评论爬取失败:', err.message);
+                reviews = [];
+            }
         } else if (platform === 'ios') {
             console.log('正在爬取App Store评论...');
             const num = maxReviews || 100;
@@ -135,9 +135,7 @@ app.post('/api/scrape-reviews', async (req, res) => {
         }
         
         console.log('正在翻译非中文评论...');
-        // 确保 reviews 是可迭代的数组
-        const safeReviews = Array.isArray(reviews) ? reviews : [];
-        reviews = await translateReviews(safeReviews);
+        reviews = await translateReviews(reviews);
         console.log('翻译完成');
         
         res.json({ success: true, reviews });
