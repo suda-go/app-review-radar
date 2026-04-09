@@ -80,8 +80,8 @@ app.post('/api/scrape-reviews', async (req, res) => {
                     num: maxReviews || 100
                 });
                 
-                // 确保 result 是数组
-                reviews = Array.isArray(result) ? result : [];
+                // 处理返回值：如果有 data 字段则使用，否则检查是否为数组
+                reviews = result.data ? result.data : (Array.isArray(result) ? result : []);
                 console.log(`成功获取 ${reviews.length} 条Google Play评论`);
                 
                 if (reviews.length === 0) {
@@ -94,7 +94,7 @@ app.post('/api/scrape-reviews', async (req, res) => {
                         sort: gplay.sort.NEWEST,
                         num: maxReviews || 100
                     });
-                    const defaultReviews = Array.isArray(defaultResult) ? defaultResult : [];
+                    const defaultReviews = defaultResult.data ? defaultResult.data : (Array.isArray(defaultResult) ? defaultResult : []);
                     console.log(`默认配置获取 ${defaultReviews.length} 条评论`);
                     if (defaultReviews.length > 0) {
                         reviews = defaultReviews;
