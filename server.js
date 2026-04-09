@@ -4,7 +4,7 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 
-const gplay = require('google-play-scraper').default;
+const gplay = require('google-play-scraper');
 const appstore = require('app-store-scraper');
 
 const app = express();
@@ -67,7 +67,7 @@ app.post('/api/scrape-reviews', async (req, res) => {
         
         if (platform === 'android') {
             console.log('正在爬取Google Play评论...');
-            const result = await gplay.reviews({
+            reviews = await gplay.reviews({
                 appId,
                 country,
                 lang: lang || country,
@@ -75,7 +75,6 @@ app.post('/api/scrape-reviews', async (req, res) => {
                 num: maxReviews || 100
             });
             
-            reviews = result.data || [];
             console.log(`成功获取 ${reviews.length} 条Google Play评论`);
         } else if (platform === 'ios') {
             console.log('正在爬取App Store评论...');
