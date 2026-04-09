@@ -68,6 +68,10 @@ app.post('/api/scrape-reviews', async (req, res) => {
         if (platform === 'android') {
             console.log('正在爬取Google Play评论...');
             try {
+                // 先检查应用是否存在
+                const appInfo = await gplay.app({ appId, country, lang: lang || country });
+                console.log('应用信息:', { title: appInfo.title, rating: appInfo.score, reviewsCount: appInfo.reviews });
+                
                 const result = await gplay.reviews({
                     appId,
                     country,
@@ -79,8 +83,26 @@ app.post('/api/scrape-reviews', async (req, res) => {
                 // 确保 result 是数组
                 reviews = Array.isArray(result) ? result : [];
                 console.log(`成功获取 ${reviews.length} 条Google Play评论`);
+                
+                if (reviews.length === 0) {
+                    // 尝试使用默认语言和国家
+                    console.log('尝试使用默认语言和国家重新爬取...');
+                    const defaultResult = await gplay.reviews({
+                        appId,
+                        country: 'us',
+                        lang: 'en',
+                        sort: gplay.sort.NEWEST,
+                        num: maxReviews || 100
+                    });
+                    const defaultReviews = Array.isArray(defaultResult) ? defaultResult : [];
+                    console.log(`默认配置获取 ${defaultReviews.length} 条评论`);
+                    if (defaultReviews.length > 0) {
+                        reviews = defaultReviews;
+                    }
+                }
             } catch (err) {
                 console.error('Google Play评论爬取失败:', err.message);
+                console.error('错误详情:', err);
                 reviews = [];
             }
         } else if (platform === 'ios') {
