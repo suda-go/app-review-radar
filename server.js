@@ -63,36 +63,43 @@ app.post('/api/scrape-reviews', async (req, res) => {
         
         console.log('爬取请求:', { platform, appId, country, lang, maxReviews, dateFrom, dateTo });
         
+        // 设置默认值
+        const defaultCountry = 'us';
+        const defaultLang = 'en';
+        const finalCountry = country || defaultCountry;
+        const finalLang = lang || defaultLang;
+        const finalMaxReviews = maxReviews || 100;
+        
         let reviews = [];
         
         if (platform === 'android') {
             console.log('正在爬取Google Play评论...');
             try {
                 // 先检查应用是否存在
-                const appInfo = await gplay.app({ appId, country, lang: lang || country });
+                const appInfo = await gplay.app({ appId, country: finalCountry, lang: finalLang });
                 console.log('应用信息:', { title: appInfo.title, rating: appInfo.score, reviewsCount: appInfo.reviews });
                 
                 const result = await gplay.reviews({
                     appId,
-                    country,
-                    lang: lang || country,
+                    country: finalCountry,
+                    lang: finalLang,
                     sort: gplay.sort.NEWEST,
-                    num: maxReviews || 100
+                    num: finalMaxReviews
                 });
                 
                 // 处理返回值：如果有 data 字段则使用，否则检查是否为数组
                 reviews = result.data ? result.data : (Array.isArray(result) ? result : []);
                 console.log(`成功获取 ${reviews.length} 条Google Play评论`);
                 
-                if (reviews.length === 0) {
+                if (reviews.length === 0 && finalCountry !== defaultCountry) {
                     // 尝试使用默认语言和国家
                     console.log('尝试使用默认语言和国家重新爬取...');
                     const defaultResult = await gplay.reviews({
                         appId,
-                        country: 'us',
-                        lang: 'en',
+                        country: defaultCountry,
+                        lang: defaultLang,
                         sort: gplay.sort.NEWEST,
-                        num: maxReviews || 100
+                        num: finalMaxReviews
                     });
                     const defaultReviews = defaultResult.data ? defaultResult.data : (Array.isArray(defaultResult) ? defaultResult : []);
                     console.log(`默认配置获取 ${defaultReviews.length} 条评论`);
@@ -107,7 +114,7 @@ app.post('/api/scrape-reviews', async (req, res) => {
             }
         } else if (platform === 'ios') {
             console.log('正在爬取App Store评论...');
-            const num = maxReviews || 100;
+            const num = finalMaxReviews;
             const pages = Math.ceil(num / 10);
             let allReviews = [];
 
@@ -115,7 +122,7 @@ app.post('/api/scrape-reviews', async (req, res) => {
                 try {
                     const result = await appstore.reviews({
                         id: appId,
-                        country: country || 'us',
+                        country: finalCountry,
                         sort: appstore.sort.RECENT,
                         page
                     });
