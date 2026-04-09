@@ -1,6 +1,6 @@
 {
   "name": "app-review-radar",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "App Store and Google Play review scraping tool",
   "scripts": {
