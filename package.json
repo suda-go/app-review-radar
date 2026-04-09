@@ -9,7 +9,7 @@
   "dependencies": {
     "app-store-scraper": "^0.18.0",
     "cors": "^2.8.6",
-    "express": "^5.2.1",
+    "express": "^4.21.2",
     "google-play-scraper": "^10.1.2"
   }
 }
