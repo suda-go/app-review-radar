@@ -1,20 +1,10 @@
 {
-  "name": "data-analysis-toolkit",
-  "version": "0.1.0",
+  "name": "app-review-radar",
+  "version": "1.0.0",
   "private": true,
-  "description": "Data analysis skills and data connection MCPs",
-  "workspaces": [
-    "skills/*",
-    "mcps/*",
-    "shared"
-  ],
+  "description": "App Store and Google Play review scraping tool",
   "scripts": {
-    "build": "tsc --build",
-    "clean": "tsc --build --clean",
     "start": "node server.js"
-  },
-  "devDependencies": {
-    "typescript": "^5.5.0"
   },
   "dependencies": {
     "app-store-scraper": "^0.18.0",
