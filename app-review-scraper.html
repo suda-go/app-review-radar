@@ -45,6 +45,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1)
 .btn-primary{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;position:relative;overflow:hidden;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:all .25s;letter-spacing:0.3px;margin-top:6px}
 .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-primary.loading{background:linear-gradient(135deg,var(--red),#c44)}
 .btn-primary .btn-inner{display:flex;align-items:center;justify-content:center;gap:8px}
 .spinner{width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:none}
 .btn-primary.loading .spinner{display:block}
@@ -185,7 +186,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1)
 
 <div class="page">
   <div class="hero">
-    <h1>AppReview Radar <span style="font-size:16px;font-weight:400;color:var(--text3);margin-left:8px;">v1.3.2</span></h1>
+    <h1>AppReview Radar <span style="font-size:16px;font-weight:400;color:var(--text3);margin-left:8px;">v1.4.0</span></h1>
     <p>Google Play & App Store 用户评论智能采集平台</p>
   </div>
 
@@ -299,6 +300,8 @@ document.querySelectorAll('input[name="platform"]').forEach(r=>{
 
 const form=document.getElementById('scraper-form');
 const btn=document.getElementById('scrape-btn');
+const btnLabel=btn.querySelector('.btn-label');
+let abortController=null;
 const analyzeBtn=document.getElementById('analyze-btn');
 const favBtn=document.getElementById('fav-btn');
 const favBtnText=document.getElementById('fav-btn-text');
@@ -412,6 +415,17 @@ renderFavorites();autoRefreshFavorites();
 
 form.addEventListener('submit',async e=>{
   e.preventDefault();
+  
+  // 如果正在采集，则停止
+  if(abortController){
+    abortController.abort();
+    abortController=null;
+    btn.classList.remove('loading','stopping');
+    btn.disabled=false;
+    btnLabel.textContent='开始采集';
+    return;
+  }
+  
   const platform=document.querySelector('input[name="platform"]:checked').value;
   const appId=appIdInput.value.trim();
   const country=document.getElementById('country').value.trim();
@@ -420,13 +434,22 @@ form.addEventListener('submit',async e=>{
   const dateFrom=document.getElementById('dateFrom').value;
   const dateTo=document.getElementById('dateTo').value;
 
-  btn.classList.add('loading');btn.disabled=true;
+  // 创建 AbortController
+  abortController=new AbortController();
+  
+  btn.classList.add('loading');
+  btnLabel.textContent='停止采集';
   analyzeBtn.style.display='none';analysisCtn.innerHTML='';
   currentParams={platform,appId,country,lang};
 
   try{
     const [reviewRes,appInfo]=await Promise.all([
-      fetch(location.origin+'/api/scrape-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,appId,country,lang,maxReviews,dateFrom,dateTo})}),
+      fetch(location.origin+'/api/scrape-reviews',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({platform,appId,country,lang,maxReviews,dateFrom,dateTo}),
+        signal:abortController.signal
+      }),
       fetchAppInfo(platform,appId,country,lang)
     ]);
     if(!reviewRes.ok){const err=await reviewRes.json().catch(()=>({}));throw new Error(err.error||`HTTP ${reviewRes.status}`)}
@@ -436,9 +459,20 @@ form.addEventListener('submit',async e=>{
     if(data.reviews.length>0)analyzeBtn.style.display='inline-flex';
     updateFavBtn();
   }catch(err){
-    resultsCtn.style.display='block';appBanner.innerHTML='';statsBar.innerHTML='';
-    reviewsList.innerHTML=`<div class="error-box">采集失败：${err.message}</div>`;countEl.textContent='错误';
-  }finally{btn.classList.remove('loading');btn.disabled=false}
+    if(err.name==='AbortError'){
+      resultsCtn.style.display='block';appBanner.innerHTML='';statsBar.innerHTML='';
+      reviewsList.innerHTML=`<div class="error-box" style="background:rgba(212,164,91,0.1);border-color:var(--yellow);color:var(--yellow)">采集已取消</div>`;
+      countEl.textContent='已取消';
+    }else{
+      resultsCtn.style.display='block';appBanner.innerHTML='';statsBar.innerHTML='';
+      reviewsList.innerHTML=`<div class="error-box">采集失败：${err.message}</div>`;countEl.textContent='错误';
+    }
+  }finally{
+    abortController=null;
+    btn.classList.remove('loading','stopping');
+    btn.disabled=false;
+    btnLabel.textContent='开始采集';
+  }
 });
 
 function render(reviews,platform,appId,country,dateFrom,dateTo,appInfo){
