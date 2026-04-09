@@ -185,7 +185,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1)
 
 <div class="page">
   <div class="hero">
-    <h1>AppReview Radar <span style="font-size:16px;font-weight:400;color:var(--text3);margin-left:8px;">v1.3.1</span></h1>
+    <h1>AppReview Radar <span style="font-size:16px;font-weight:400;color:var(--text3);margin-left:8px;">v1.3.2</span></h1>
     <p>Google Play & App Store 用户评论智能采集平台</p>
   </div>
 
@@ -507,8 +507,7 @@ function render(reviews,platform,appId,country,dateFrom,dateTo,appInfo){
         </td>
         <td class="col-date">
           <div>${dateStr}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">📦 ${esc(versionStr)}</div>
-          <div style="font-size:10px;color:var(--text3)">👍 ${thumbsUpStr}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">${esc(versionStr)}</div>
         </td>
       </tr>
     `;
