@@ -325,7 +325,7 @@ let currentAppInfo=null;
 
 async function fetchAppInfo(platform,appId,country,lang){
   try{
-    const res=await fetch('/api/app-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,appId,country,lang})});
+    const res=await fetch(location.origin+'/api/app-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,appId,country,lang})});
     const data=await res.json();
     return data.info||{title:appId,icon:''};
   }catch(e){return{title:appId,icon:''}}
@@ -402,7 +402,7 @@ async function refreshFavorite(key){
       const info=await fetchAppInfo(fav.platform,fav.appId,fav.country,fav.lang);
       fav.appName=info.title;fav.appIcon=info.icon;
     }
-    const res=await fetch('/api/scrape-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:fav.platform,appId:fav.appId,country:fav.country,lang:fav.lang||fav.country,maxReviews:5})});
+    const res=await fetch(location.origin+'/api/scrape-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:fav.platform,appId:fav.appId,country:fav.country,lang:fav.lang||fav.country,maxReviews:5})});
     if(!res.ok)throw new Error('刷新失败');
     const data=await res.json();
     fav.reviews=(data.reviews||[]).slice(0,5);fav.lastRefreshed=Date.now();
@@ -433,7 +433,7 @@ form.addEventListener('submit',async e=>{
 
   try{
     const [reviewRes,appInfo]=await Promise.all([
-      fetch('/api/scrape-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,appId,country,lang,maxReviews,dateFrom,dateTo})}),
+      fetch(location.origin+'/api/scrape-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,appId,country,lang,maxReviews,dateFrom,dateTo})}),
       fetchAppInfo(platform,appId,country,lang)
     ]);
     if(!reviewRes.ok){const err=await reviewRes.json().catch(()=>({}));throw new Error(err.error||`HTTP ${reviewRes.status}`)}
@@ -485,7 +485,7 @@ async function analyzeReviews(){
   if(!currentReviews.length)return;
   analyzeBtn.classList.add('loading');analyzeBtn.disabled=true;analysisCtn.innerHTML='';
   try{
-    const res=await fetch('/api/analyze-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reviews:currentReviews})});
+    const res=await fetch(location.origin+'/api/analyze-reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reviews:currentReviews})});
     if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error||'分析失败')}
     renderAnalysis((await res.json()).analysis);
   }catch(err){analysisCtn.innerHTML=`<div class="error-box">分析失败：${err.message}</div>`}

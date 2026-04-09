@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "start": "node server.js"
   },
   "devDependencies": {
     "typescript": "^5.5.0"
