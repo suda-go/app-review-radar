@@ -39,8 +39,15 @@ function translateText(text, targetLang = 'zh-CN') {
 }
 
 async function translateReviews(reviews) {
+  // 确保输入是数组
+  if (!Array.isArray(reviews)) {
+    return [];
+  }
+  
   const result = [];
   for (const r of reviews) {
+    if (!r) continue;
+    
     const textNeedTranslate = r.text && !isChinese(r.text);
     const titleNeedTranslate = r.title && !isChinese(r.title);
     let textZh = '';
@@ -128,7 +135,9 @@ app.post('/api/scrape-reviews', async (req, res) => {
         }
         
         console.log('正在翻译非中文评论...');
-        reviews = await translateReviews(reviews);
+        // 确保 reviews 是可迭代的数组
+        const safeReviews = Array.isArray(reviews) ? reviews : [];
+        reviews = await translateReviews(safeReviews);
         console.log('翻译完成');
         
         res.json({ success: true, reviews });
